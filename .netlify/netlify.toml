@@ -1,0 +1,26 @@
+plugins = []
+headers = []
+redirects = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "F:\\Desktop\\DisasterSense - Copy"
+publishOrigin = "default"
+base = "F:\\Desktop\\DisasterSense - Copy"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]

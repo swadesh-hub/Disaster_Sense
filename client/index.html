@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DisasterSense - AI Crisis Management & Coordination</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet Map API CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet Map API JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo" id="techStackTrigger" style="cursor: pointer;" title="View System Architecture">
+                <div class="icon-pulse">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                </div>
+                <span>DisasterSense</span>
+                <span class="tech-badge">PRO v2.0</span>
+            </div>
+            <div class="header-actions">
+                <div class="status-indicator">
+                    <span class="dot"></span>
+                    AI Systems Online
+                </div>
+                <button class="btn-primary report-btn">
+                    <i class="fa-solid fa-land-mine-on"></i> Report Incident
+                </button>
+            </div>
+        </header>
+
+        <!-- Advanced Navigation Bar -->
+        <nav class="main-nav">
+            <div class="nav-links">
+                <button class="nav-item active" data-tab="citizen-portal">
+                    <i class="fa-solid fa-house-chimney-crack"></i> Citizen Portal
+                </button>
+                <button class="nav-item" data-tab="live-map">
+                    <i class="fa-solid fa-map-location-dot"></i> Live Map
+                </button>
+                <button class="nav-item" data-tab="relief-centers">
+                    <i class="fa-solid fa-house-medical"></i> Relief Centers
+                </button>
+                <button class="nav-item" data-tab="emergency-contacts">
+                    <i class="fa-solid fa-phone-volume"></i> Emergency Contacts
+                </button>
+                <button class="nav-item admin-nav" data-tab="admin-dashboard">
+                    <i class="fa-solid fa-user-shield"></i> Admin Control Center
+                </button>
+            </div>
+            <div class="role-selector">
+                <span class="role-label"><i class="fa-solid fa-user-gear"></i> Role:</span>
+                <select id="userRoleSelect" class="role-dropdown">
+                    <option value="citizen">Citizen (Public Portal)</option>
+                    <option value="admin">System Admin (Restricted)</option>
+                </select>
+            </div>
+        </nav>
+
+        <!-- Page Content Sections -->
+        <main>
+            <!-- 1. CITIZEN PORTAL SECTION -->
+            <section id="citizen-portal" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h1>Citizen Incident Board</h1>
+                        <p class="subtitle">Public list of reported disasters requiring active response.</p>
+                    </div>
+                </div>
+
+                <div class="incidents-grid" id="live-grid">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <div class="section-header" style="margin-top: 60px;">
+                    <div>
+                        <h1><i class="fa-solid fa-clipboard-check" style="color: #00ff9d;"></i> Resolved Cases</h1>
+                        <p class="subtitle">Successfully mitigated incidents.</p>
+                    </div>
+                </div>
+
+                <div class="incidents-grid" id="resolved-grid" style="opacity: 0.8;">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- 2. LIVE MAP SECTION -->
+            <section id="live-map" class="tab-content hidden">
+                <div class="section-header">
+                    <div>
+                        <h1>Real-Time Disaster Map</h1>
+                        <p class="subtitle">Geospatial location monitoring using interactive Map integration.</p>
+                    </div>
+                    <div class="map-toggles">
+                        <label class="toggle-container">
+                            <input type="checkbox" id="showMapIncidents" checked>
+                            <span class="checkmark"></span> Incidents
+                        </label>
+                        <label class="toggle-container" style="margin-left: 15px;">
+                            <input type="checkbox" id="showMapCenters" checked>
+                            <span class="checkmark"></span> Relief Centers
+                        </label>
+                    </div>
+                </div>
+                <div id="map"></div>
+                <div class="map-legend">
+                    <div class="legend-item"><span class="legend-dot red"></span> Disaster Incident</div>
+                    <div class="legend-item"><span class="legend-dot green"></span> Relief Center / Shelter</div>
+                </div>
+            </section>
+
+            <!-- 3. RELIEF CENTERS SECTION -->
+            <section id="relief-centers" class="tab-content hidden">
+                <div class="section-header">
+                    <div>
+                        <h1>Emergency Relief Centers</h1>
+                        <p class="subtitle">Search and locate nearby shelter, medical centers, and food camps.</p>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" id="centerSearch" placeholder="Search centers by name or address...">
+                        <select id="centerTypeFilter">
+                            <option value="all">All Types</option>
+                            <option value="Shelter">Shelter</option>
+                            <option value="Hospital">Hospital</option>
+                            <option value="Camp">Food/Evac Camp</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="relief-centers-grid" id="relief-centers-grid">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- 4. EMERGENCY CONTACTS SECTION -->
+            <section id="emergency-contacts" class="tab-content hidden">
+                <div class="section-header">
+                    <div>
+                        <h1>Emergency Services Directory</h1>
+                        <p class="subtitle">Quick access to essential contacts and region-based rescue services.</p>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" id="contactSearch" placeholder="Search services by name...">
+                        <select id="contactRegionFilter">
+                            <option value="all">All Regions</option>
+                            <option value="Delhi NCR">Delhi NCR</option>
+                            <option value="Assam">Assam</option>
+                            <option value="Uttarakhand">Uttarakhand</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="All Regions">National/Federal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="contacts-grid" id="contacts-grid">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- 5. ADMIN CONTROL CENTER SECTION -->
+            <section id="admin-dashboard" class="tab-content hidden">
+                <!-- Access Denied Layer for Citizens -->
+                <div id="adminAccessDenied" class="access-denied">
+                    <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--danger); margin-bottom: 20px;"></i>
+                    <h2>Restricted Administration Access</h2>
+                    <p>You must select the <strong>System Admin</strong> role in the navigation bar dropdown to access these controls.</p>
+                    <button class="btn-primary" onclick="switchToAdminRole()" style="margin-top: 15px;">Switch to Admin Mode</button>
+                </div>
+
+                <!-- Admin Dashboard Content -->
+                <div id="adminDashboardContent">
+                    <div class="section-header">
+                        <div>
+                            <h1>Admin Monitoring & Coordination</h1>
+                            <p class="subtitle">Consolidated operational dashboard for disaster management.</p>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Bar -->
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div class="stat-details">
+                                <span class="stat-num" id="stat-total">0</span>
+                                <span class="stat-label">Total Reports</span>
+                            </div>
+                        </div>
+                        <div class="stat-card active">
+                            <i class="fa-solid fa-circle-radiation"></i>
+                            <div class="stat-details">
+                                <span class="stat-num" id="stat-active">0</span>
+                                <span class="stat-label">Active Cases</span>
+                            </div>
+                        </div>
+                        <div class="stat-card resolved">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <div class="stat-details">
+                                <span class="stat-num" id="stat-resolved">0</span>
+                                <span class="stat-label">Resolved</span>
+                            </div>
+                        </div>
+                        <div class="stat-card teams">
+                            <i class="fa-solid fa-truck-medical"></i>
+                            <div class="stat-details">
+                                <span class="stat-num" id="stat-teams">0</span>
+                                <span class="stat-label">Assigned Squads</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Dashboard Grid -->
+                    <div class="dashboard-grid">
+                        <!-- Left Panel: Analytics and Allocation -->
+                        <div class="dashboard-panel panel-left">
+                            <div class="panel-header">
+                                <h3><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Visual Analytics</h3>
+                            </div>
+                            <div class="chart-container" style="position: relative; height:240px; margin-bottom: 20px;">
+                                <canvas id="analyticsChart"></canvas>
+                            </div>
+
+                            <div class="panel-header" style="margin-top: 30px;">
+                                <h3><i class="fa-solid fa-people-carry-box" style="color: var(--accent);"></i> Resource Allocation</h3>
+                            </div>
+                            <div class="allocation-section">
+                                <form id="allocationForm" class="admin-form">
+                                    <div class="form-row">
+                                        <div class="form-group flex-2">
+                                            <label>Select Incident</label>
+                                            <select id="allocationIncidentSelect" required>
+                                                <!-- Populated dynamically -->
+                                            </select>
+                                        </div>
+                                        <div class="form-group flex-1">
+                                            <label>Resource Type</label>
+                                            <select id="allocationResourceType" required>
+                                                <option value="Fire Engines">Fire Engines</option>
+                                                <option value="Ambulances">Ambulances</option>
+                                                <option value="Search & Rescue Boats">Rescue Boats</option>
+                                                <option value="Helicopters">Helicopters</option>
+                                                <option value="Rations & Tents">Rations & Tents</option>
+                                                <option value="Medical Supplies">Medical Supplies</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group flex-0">
+                                            <label>Qty</label>
+                                            <input type="number" id="allocationQuantity" min="1" max="50" value="1" style="width: 60px;" required>
+                                        </div>
+                                        <button type="submit" class="btn-primary submit-allocation-btn" style="margin-top: 18px; height: 40px; padding: 0 15px;">Dispatch</button>
+                                    </div>
+                                </form>
+                                <div class="allocations-list-container">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Incident</th>
+                                                <th>Resource</th>
+                                                <th>Qty</th>
+                                                <th>Status</th>
+                                                <th>Timestamp</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="allocationsTableBody">
+                                            <!-- Dynamically populated -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Audit Logs and Tech Stack -->
+                        <div class="dashboard-panel panel-right">
+                            <div class="panel-header">
+                                <h3><i class="fa-solid fa-list-check" style="color: var(--warning);"></i> System Logs & Audit Trail</h3>
+                            </div>
+                            <div class="logs-console" id="logsConsole">
+                                <!-- Log entries populated dynamically -->
+                            </div>
+
+                            <div class="tech-stack-card">
+                                <h4><i class="fa-solid fa-layer-group"></i> Architecture Overview</h4>
+                                <p>This project simulates a fully-integrated disaster response network using state-of-the-art technologies.</p>
+                                <div class="tech-tags">
+                                    <span class="tech-tag react">React.js</span>
+                                    <span class="tech-tag django">Django REST</span>
+                                    <span class="tech-tag mysql">MySQL</span>
+                                    <span class="tech-tag maps">Maps API</span>
+                                </div>
+                                <div class="tech-description">
+                                    <ul>
+                                        <li><strong>Frontend SPA Architecture</strong> powered by modular components, responsive dashboard filters, and custom mapping.</li>
+                                        <li><strong>Django Backend Architecture</strong> handles authentication, notification triggers, and relational schemas.</li>
+                                        <li><strong>MySQL Relational Schema</strong> links reports to relief center allocations and logs audit details.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2><i class="fa-solid fa-triangle-exclamation"></i> Report New Incident</h2>
+            <form id="reportForm">
+                <div class="form-group">
+                    <label>Disaster Type</label>
+                    <select name="type" required>
+                        <option value="Fire">Fire</option>
+                        <option value="Flood">Flood</option>
+                        <option value="Landslide">Landslide</option>
+                        <option value="Accident">Accident</option>
+                        <option value="Earthquake">Earthquake</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Severity Level</label>
+                    <select name="severity" required>
+                        <option value="Low">Low (Minor danger)</option>
+                        <option value="Medium" selected>Medium (Standard alert)</option>
+                        <option value="High">High (Severe crisis)</option>
+                        <option value="Critical">Critical (Immediate catastrophe)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" placeholder="Describe the situation..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Location</label>
+                    <div class="location-input-group">
+                        <input type="text" name="address" id="addressInput"
+                            placeholder="Enter address or detect location" required>
+                        <button type="button" id="detectLocationBtn" class="btn-secondary"><i
+                                class="fa-solid fa-crosshairs"></i> Detect</button>
+                    </div>
+                    <input type="hidden" name="latitude" id="latInput">
+                    <input type="hidden" name="longitude" id="lngInput">
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Evidence (Photo/Video)</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" name="evidence" id="evidenceInput" accept="image/*,video/*" required>
+                        <div class="file-upload-placeholder">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Click to upload photo or video</span>
+                        </div>
+                    </div>
+                    <div id="filePreview"></div>
+                </div>
+
+                <button type="submit" class="btn-primary full-width">Submit Report</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tech Stack Info Modal -->
+    <div id="techStackModal" class="modal">
+        <div class="modal-content info-modal">
+            <span class="close-tech-modal" style="float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <h2><i class="fa-solid fa-gears"></i> Disaster Management System</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">System Specifications & Tech Stack</p>
+            
+            <div class="spec-section">
+                <h3><i class="fa-brands fa-react" style="color: #00d4ff;"></i> Frontend (React.js SPA)</h3>
+                <p>Built with styled components, responsive grid layouts, and modular view-routing. Handles location monitoring and real-time inputs.</p>
+            </div>
+            
+            <div class="spec-section" style="margin-top: 15px;">
+                <h3><i class="fa-brands fa-python" style="color: #38ef7d;"></i> Backend (Django REST Framework)</h3>
+                <p>Manages 8 core models including Incident, ReliefCenter, EmergencyContact, and User Roles. Provides token-based JWT authentication.</p>
+            </div>
+
+            <div class="spec-section" style="margin-top: 15px;">
+                <h3><i class="fa-solid fa-database" style="color: #f0932b;"></i> Relational DB (MySQL)</h3>
+                <p>Relational model mapping logs, incidents, relief center limits, and allocations via clean indexes and foreign constraints.</p>
+            </div>
+
+            <div class="spec-section" style="margin-top: 15px;">
+                <h3><i class="fa-solid fa-map" style="color: #4facfe;"></i> Map Integration (Maps API)</h3>
+                <p>Interactive coordinate plotting for live disaster response vectors, dispatching squads, and safe zone calculations.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
